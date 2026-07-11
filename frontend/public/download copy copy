@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SENTINEL CSPM | Threat Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed": "#001b3e",
+                    "primary-container": "#3e90ff",
+                    "surface-tint": "#aac7ff",
+                    "on-tertiary": "#472a00",
+                    "surface": "#10141a",
+                    "inverse-on-surface": "#2d3137",
+                    "on-background": "#dfe2eb",
+                    "outline": "#8b91a0",
+                    "on-secondary-fixed-variant": "#005236",
+                    "tertiary-container": "#ca8100",
+                    "secondary-container": "#00a572",
+                    "surface-container-highest": "#31353c",
+                    "on-tertiary-fixed": "#2a1700",
+                    "on-surface-variant": "#c0c6d6",
+                    "secondary-fixed": "#6ffbbe",
+                    "surface-variant": "#31353c",
+                    "background": "#10141a",
+                    "surface-container": "#1c2026",
+                    "outline-variant": "#414754",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "inverse-surface": "#dfe2eb",
+                    "on-primary-fixed-variant": "#00468d",
+                    "surface-container-lowest": "#0a0e14",
+                    "on-surface": "#dfe2eb",
+                    "on-error": "#690005",
+                    "on-secondary-fixed": "#002113",
+                    "primary-fixed": "#d6e3ff",
+                    "on-primary-container": "#002957",
+                    "surface-container-high": "#262a31",
+                    "on-secondary-container": "#00311f",
+                    "on-tertiary-container": "#3e2400",
+                    "error": "#ffb4ab",
+                    "inverse-primary": "#005db8",
+                    "secondary": "#4edea3",
+                    "secondary-fixed-dim": "#4edea3",
+                    "surface-dim": "#10141a",
+                    "surface-bright": "#353940",
+                    "primary": "#aac7ff",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-low": "#181c22",
+                    "error-container": "#93000a",
+                    "tertiary-fixed-dim": "#ffb95f",
+                    "tertiary-fixed": "#ffddb8",
+                    "on-primary": "#003064",
+                    "on-secondary": "#003824",
+                    "tertiary": "#ffb95f",
+                    "primary-fixed-dim": "#aac7ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "container-margin": "24px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "lg": "24px",
+                    "base": "4px",
+                    "sm": "8px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "headline-sm": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "mono-data": ["JetBrains Mono"],
+                    "headline-md": ["Inter"],
+                    "body-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "mono-data": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0a0e14;
+            color: #dfe2eb;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .severity-critical { color: #ffb4ab; border-left: 4px solid #ffb4ab; }
+        .severity-high { color: #ffb95f; border-left: 4px solid #ffb95f; }
+        .severity-medium { color: #aac7ff; border-left: 4px solid #aac7ff; }
+        .severity-low { color: #4edea3; border-left: 4px solid #4edea3; }
+        
+        .glow-critical { box-shadow: 0 0 15px rgba(255, 180, 171, 0.1); }
+        .security-grid {
+            background-size: 40px 40px;
+            background-image: radial-gradient(circle, #1c2026 1px, transparent 1px);
+        }
+        .scroll-hide::-webkit-scrollbar { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 h-14 bg-surface-container-highest dark:bg-surface-container-highest border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">security</span>
+<span class="font-headline-sm text-headline-sm font-bold tracking-tight text-primary">SENTINEL CSPM</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-variant/50 transition-colors rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="p-2 hover:bg-surface-variant/50 transition-colors rounded-full">
+<span class="material-symbols-outlined text-primary">account_circle</span>
+</button>
+</div>
+</header>
+<main class="pt-14 pb-20 min-h-screen security-grid">
+<div class="max-w-7xl mx-auto px-gutter py-lg space-y-lg">
+<!-- Header Section -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Threat Intelligence</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Real-time surveillance of global infrastructure anomalies.</p>
+</div>
+<div class="flex items-center gap-sm">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional security analyst portrait in a dark studio, blue lighting, modern tech office background, photorealistic style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHL5aiii0tlfWwA_q8LlX1Dxitw7_TcG5zsXpgFVBHPdaSL9tb9mWi2UTjBNSl60qrjGNgGpElwKn4WW8m1fLidUbl9kRXNTO6ohc024-gPwc8JUHQyuf4AwLsYr1zdGk2VY35SoTyGZOVReCXN9XaaG-u5Lc62tYKIoBTfD29yUxY2dRJz_xS1O1w8PYog13KCSgYMztM4s5PvQJfF3PimTFlKw2Ro4_UNCMlo5Y9lyrEkLDVr4ICMB_zVT5qhWLv1eixWjT4jIhi"/>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface-container bg-primary-container text-on-primary-container flex items-center justify-center font-label-caps text-[10px]">
+                            +4
+                        </div>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">3 Analysts Active</span>
+</div>
+</section>
+<!-- Search & Filter Bar -->
+<div class="bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 flex flex-wrap items-center gap-sm">
+<div class="flex-1 min-w-[280px] relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container-lowest border-none rounded-lg pl-10 pr-4 py-2 font-body-md text-on-surface focus:ring-1 focus:ring-primary" placeholder="Search events, resource IDs, or actors..." type="text"/>
+</div>
+<div class="flex gap-sm">
+<button class="flex items-center gap-2 px-3 py-2 bg-surface-container-high hover:bg-surface-variant transition-colors rounded-lg text-on-surface-variant font-label-caps uppercase">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+<span>Severity</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-2 bg-surface-container-high hover:bg-surface-variant transition-colors rounded-lg text-on-surface-variant font-label-caps uppercase">
+<span class="material-symbols-outlined text-[18px]">category</span>
+<span>Event Type</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-2 bg-primary text-on-primary rounded-lg font-label-caps uppercase hover:brightness-110 transition-all">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Export</span>
+</button>
+</div>
+</div>
+<!-- Dashboard Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+<!-- Activity Feed (Left Column) -->
+<div class="lg:col-span-8 space-y-md">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                            Live Detection Feed
+                        </h2>
+<span class="font-mono-data text-mono-data text-secondary">AUTO-REFRESH: 5s</span>
+</div>
+<div class="space-y-sm">
+<!-- Feed Item: Critical -->
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-lg p-4 severity-critical glow-critical transition-all hover:bg-surface-container-high group">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="bg-error-container/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">gpp_maybe</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-[16px] text-on-surface">Anomalous Login Detected</h3>
+<p class="font-mono-data text-mono-data text-error uppercase text-[10px] tracking-widest mt-0.5">Critical Severity • IAM-042</p>
+</div>
+</div>
+<span class="font-mono-data text-mono-data text-on-surface-variant text-[11px]">Just Now</span>
+</div>
+<div class="ml-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-1">
+<p class="font-body-sm text-on-surface-variant">User <span class="text-on-surface font-mono-data">admin_root</span> logged in from <span class="text-on-surface font-mono-data">185.220.101.42</span> (Tor Exit Node).</p>
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-[10px] text-outline px-1.5 py-0.5 border border-outline-variant/30 rounded">US-EAST-1</span>
+<span class="font-label-caps text-[10px] text-outline px-1.5 py-0.5 border border-outline-variant/30 rounded">PROD-ENV</span>
+</div>
+</div>
+<div class="flex md:justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="px-3 py-1.5 bg-surface-container-highest border border-outline-variant/20 rounded hover:border-primary transition-colors font-label-caps text-on-surface text-[11px]">MUTE</button>
+<button class="px-3 py-1.5 bg-surface-container-highest border border-outline-variant/20 rounded hover:border-primary transition-colors font-label-caps text-on-surface text-[11px]">INVESTIGATE</button>
+<button class="px-3 py-1.5 bg-primary text-on-primary rounded font-label-caps text-[11px] hover:brightness-110">REMEDIATE</button>
+</div>
+</div>
+</div>
+<!-- Feed Item: High -->
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-lg p-4 severity-high transition-all hover:bg-surface-container-high group">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="bg-tertiary-container/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-tertiary">api</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-[16px] text-on-surface">Suspicious API Activity</h3>
+<p class="font-mono-data text-mono-data text-tertiary uppercase text-[10px] tracking-widest mt-0.5">High Severity • NET-881</p>
+</div>
+</div>
+<span class="font-mono-data text-mono-data text-on-surface-variant text-[11px]">4m ago</span>
+</div>
+<div class="ml-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-1">
+<p class="font-body-sm text-on-surface-variant">Rapid enumeration of <span class="text-on-surface font-mono-data">DescribeInstances</span> on VPC-99812-XX.</p>
+<div class="font-mono-data text-[11px] text-tertiary">Resource: i-0f92bc4911d3</div>
+</div>
+<div class="flex md:justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="px-3 py-1.5 bg-surface-container-highest border border-outline-variant/20 rounded hover:border-primary transition-colors font-label-caps text-on-surface text-[11px]">MUTE</button>
+<button class="px-3 py-1.5 bg-primary text-on-primary rounded font-label-caps text-[11px] hover:brightness-110">INVESTIGATE</button>
+</div>
+</div>
+</div>
+<!-- Feed Item: Medium -->
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-lg p-4 severity-medium transition-all hover:bg-surface-container-high group">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="bg-primary-container/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary">storage</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-[16px] text-on-surface">S3 Bucket Policy Change</h3>
+<p class="font-mono-data text-mono-data text-primary uppercase text-[10px] tracking-widest mt-0.5">Medium Severity • S3-102</p>
+</div>
+</div>
+<span class="font-mono-data text-mono-data text-on-surface-variant text-[11px]">18m ago</span>
+</div>
+<div class="ml-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-1">
+<p class="font-body-sm text-on-surface-variant">Public read access granted to <span class="text-on-surface font-mono-data">sentinel-audit-logs-2023</span> by User: Jenkins_CI.</p>
+</div>
+<div class="flex md:justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="px-3 py-1.5 bg-primary text-on-primary rounded font-label-caps text-[11px] hover:brightness-110">REVERT POLICY</button>
+</div>
+</div>
+</div>
+<!-- Feed Item: Low -->
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-lg p-4 severity-low transition-all hover:bg-surface-container-high group">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="bg-secondary-container/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-secondary">update</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-[16px] text-on-surface">Unused Access Key Rotation</h3>
+<p class="font-mono-data text-mono-data text-secondary uppercase text-[10px] tracking-widest mt-0.5">Low Severity • IAM-011</p>
+</div>
+</div>
+<span class="font-mono-data text-mono-data text-on-surface-variant text-[11px]">42m ago</span>
+</div>
+<div class="ml-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-1">
+<p class="font-body-sm text-on-surface-variant">Access key <span class="text-on-surface font-mono-data">AKIA...44B</span> has not been used in 90 days.</p>
+</div>
+<div class="flex md:justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="px-3 py-1.5 bg-surface-container-highest border border-outline-variant/20 rounded hover:border-primary transition-colors font-label-caps text-on-surface text-[11px]">DISMISS</button>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full py-4 bg-surface-container-lowest border border-dashed border-outline-variant/30 rounded-lg font-label-caps text-outline hover:border-primary hover:text-primary transition-all">
+                        LOAD PREVIOUS EVENTS
+                    </button>
+</div>
+<!-- Sidebar Insights (Right Column) -->
+<div class="lg:col-span-4 space-y-lg">
+<!-- Threat Landscape Card -->
+<div class="bg-surface-container border border-outline-variant/20 rounded-xl overflow-hidden">
+<div class="p-4 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-high">
+<h3 class="font-label-caps text-label-caps text-on-surface uppercase tracking-widest">Global Risk Distribution</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">public</span>
+</div>
+<div class="p-4 space-y-4">
+<div class="h-32 w-full relative rounded-lg overflow-hidden border border-outline-variant/10">
+<img class="w-full h-full object-cover grayscale brightness-50" data-alt="A futuristic holographic world map showing red and amber threat hotspots, dark blue digital aesthetic, neon accents, cinematic high-tech surveillance interface style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKoco6M7Hdpk2_o9WMX42FOd1F4FAOU6vWJXFAOgbdSo16jmo9e9lMwFihuDRqzn8AZvc0NHln1P8_A3BIT_a3qzyM26uY8DhekNEmaQc52WfLln4MptOxz80KBH7RhZiweSEFpaJ6WKy0OwxioJ2LiFN0SOZo5NO_Xr8mRIv2TL5Imcpoqj5yfKDHP8npxzkRC7dSA-lbrmMlaguTQpTQx-kUNnjNCWzJV-6XFaYsVDJ4dvOSSGkHXJ8uGZ-ufjHGLwn7TyAcd7Jw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent"></div>
+<div class="absolute bottom-2 left-2 right-2 flex justify-between items-end">
+<div class="space-y-1">
+<div class="font-mono-data text-[10px] text-error flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-error rounded-full animate-ping"></span>
+                                            ACTIVE ATTACK: US-WEST
+                                        </div>
+</div>
+<div class="text-right">
+<div class="font-headline-sm text-headline-sm text-primary">7.2/10</div>
+<div class="font-label-caps text-[9px] text-on-surface-variant">RISK SCORE</div>
+</div>
+</div>
+</div>
+<div class="space-y-3">
+<div>
+<div class="flex justify-between font-label-caps text-[10px] text-on-surface-variant mb-1">
+<span>CRITICAL EVENTS</span>
+<span>24%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-error rounded-full" style="width: 24%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-caps text-[10px] text-on-surface-variant mb-1">
+<span>HIGH EVENTS</span>
+<span>42%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-tertiary rounded-full" style="width: 42%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-caps text-[10px] text-on-surface-variant mb-1">
+<span>REMEDIED TODAY</span>
+<span>68%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 68%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Top Resources Card -->
+<div class="bg-surface-container border border-outline-variant/20 rounded-xl">
+<div class="p-4 border-b border-outline-variant/10 bg-surface-container-high">
+<h3 class="font-label-caps text-label-caps text-on-surface uppercase tracking-widest">Resources Under Pressure</h3>
+</div>
+<div class="p-2 space-y-1">
+<div class="flex items-center justify-between p-2 hover:bg-surface-variant/30 rounded-lg cursor-pointer group">
+<div class="flex items-center gap-3">
+<span class="font-mono-data text-outline text-[10px]">01</span>
+<span class="font-mono-data text-body-sm text-on-surface">ec2-prod-gateway</span>
+</div>
+<span class="bg-error/10 text-error font-mono-data text-[10px] px-2 py-0.5 rounded border border-error/20">14 ALERTS</span>
+</div>
+<div class="flex items-center justify-between p-2 hover:bg-surface-variant/30 rounded-lg cursor-pointer group">
+<div class="flex items-center gap-3">
+<span class="font-mono-data text-outline text-[10px]">02</span>
+<span class="font-mono-data text-body-sm text-on-surface">s3-bucket-customer-data</span>
+</div>
+<span class="bg-tertiary/10 text-tertiary font-mono-data text-[10px] px-2 py-0.5 rounded border border-tertiary/20">8 ALERTS</span>
+</div>
+<div class="flex items-center justify-between p-2 hover:bg-surface-variant/30 rounded-lg cursor-pointer group">
+<div class="flex items-center gap-3">
+<span class="font-mono-data text-outline text-[10px]">03</span>
+<span class="font-mono-data text-body-sm text-on-surface">rds-cluster-primary</span>
+</div>
+<span class="bg-primary/10 text-primary font-mono-data text-[10px] px-2 py-0.5 rounded border border-primary/20">3 ALERTS</span>
+</div>
+</div>
+</div>
+<!-- Cyber Threat Map Animation -->
+<div class="aspect-video relative rounded-xl overflow-hidden border border-outline-variant/20">
+
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-4 text-center">
+<div class="font-label-caps text-[10px] text-primary bg-primary/10 border border-primary/30 px-3 py-1 rounded-full backdrop-blur-md mb-2">SENSORY NETWORK ACTIVE</div>
+<p class="font-body-sm text-on-surface/60 max-w-[200px]">Scanning 4.2B cloud assets for tactical vulnerabilities...</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-safe h-16 bg-surface-container-lowest dark:bg-surface-container-lowest border-t border-outline-variant/10 md:hidden">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-caps text-label-caps mt-1">Overview</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-label-caps text-label-caps mt-1">Compliance</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container/20 text-primary rounded-xl px-3 py-1 scale-95 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">radar</span>
+<span class="font-label-caps text-label-caps mt-1">Threats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:text-on-surface" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-caps text-label-caps mt-1">Assets</span>
+</a>
+</nav>
+<!-- Floating Action Button - Only on Desktop for quick reporting -->
+<button class="fixed bottom-8 right-8 hidden md:flex items-center gap-3 bg-primary text-on-primary px-6 py-4 rounded-full shadow-2xl hover:scale-105 transition-all group z-40">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_alert</span>
+<span class="font-headline-sm text-headline-sm uppercase tracking-tighter">Submit Threat Case</span>
+</button>
+<script>
+        // Simple logic for real-time vibe
+        document.addEventListener('DOMContentLoaded', () => {
+            const timestamps = document.querySelectorAll('.font-mono-data.text-on-surface-variant');
+            
+            // Randomly "refresh" some data every few seconds
+            setInterval(() => {
+                const liveStatus = document.querySelector('.animate-pulse');
+                if (liveStatus) {
+                    liveStatus.classList.toggle('opacity-50');
+                }
+            }, 2000);
+
+            // Row hover micro-interactions
+            const feedItems = document.querySelectorAll('.bg-surface-container-low');
+            feedItems.forEach(item => {
+                item.addEventListener('mouseenter', () => {
+                    item.style.transform = 'translateX(4px)';
+                });
+                item.addEventListener('mouseleave', () => {
+                    item.style.transform = 'translateX(0px)';
+                });
+            });
+        });
+    </script>
+</body></html>
