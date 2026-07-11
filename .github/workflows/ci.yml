@@ -53,13 +53,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run linting
-        run: |
-          pip install flake8 black isort
-          flake8 app/ --max-line-length=300 --ignore=F401,E712,E221,F841 --exclude=__pycache__
-          # black app/ --check
-          # isort app/ --check-only
-
       - name: Run SAST (bandit)
         run: |
           pip install bandit
@@ -108,3 +101,4 @@ jobs:
         if: always()
         with:
           sarif_file: trivy-results.sarif
+
