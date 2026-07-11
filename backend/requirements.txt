@@ -1,0 +1,82 @@
+# Web Framework
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+
+# Database
+sqlalchemy[asyncio]==2.0.30
+asyncpg==0.29.0
+alembic==1.13.1
+psycopg2-binary==2.9.9
+
+# Cache & Queue
+redis==5.0.4
+celery==5.4.0
+flower==2.0.1
+
+# Auth & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.1
+pydantic-settings==2.2.1
+pydantic[email]==2.7.1
+
+# HTTP Client
+httpx==0.27.0
+aiohttp==3.9.5
+
+# AWS
+boto3==1.34.101
+aiobotocore==2.13.0
+botocore==1.34.101
+
+# Pin grpcio to stop GCP resolver backtracking
+grpcio==1.62.3
+grpcio-status==1.62.3
+protobuf>=4.21.0,<5.0.0
+
+# GCP
+google-cloud-asset==3.25.0
+google-cloud-storage==2.16.0
+google-cloud-compute==1.19.1
+google-cloud-iam==2.15.1
+google-auth==2.29.0
+
+# Azure
+azure-identity==1.16.0
+azure-mgmt-resource==23.0.1
+azure-mgmt-storage==21.1.0
+azure-mgmt-compute==31.0.0
+azure-mgmt-authorization==4.0.0
+azure-mgmt-network==25.3.0
+
+# AI
+groq==0.9.0
+
+# Reporting
+reportlab==4.2.0
+matplotlib==3.9.0
+jinja2==3.1.4
+weasyprint==62.3
+
+# CVSS & Security Standards
+cvss==2.6
+attackcti==0.4.0
+stix2==3.0.1
+
+# Data Processing
+pandas==2.2.2
+numpy==1.26.4
+pyyaml==6.0.1
+
+# Logging & Monitoring
+loguru==0.7.2
+prometheus-fastapi-instrumentator==7.0.0
+sentry-sdk[fastapi]==2.3.1
+
+# Utilities
+tenacity==8.3.0
+python-slugify==8.0.4
+pytz==2024.1
+arrow==1.3.0
+anyio==4.3.0

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }} — CSPM Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F5F7FA; color: #1A1A2E; }
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+  .header { background: #1A1A2E; color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; }
+  .header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+  .header .meta { font-size: 0.9rem; opacity: 0.7; }
+  .risk-score { font-size: 3rem; font-weight: 700; color: {% if risk_score >= 70 %}#E53E3E{% elif risk_score >= 40 %}#DD6B20{% else %}#38A169{% endif %}; }
+  .scorecard { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  .sev-card { background: white; border-radius: 8px; padding: 1rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .sev-card .count { font-size: 2rem; font-weight: 700; }
+  .sev-card .label { font-size: 0.8rem; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; }
+  .critical .count { color: #C53030; }
+  .high .count { color: #C05621; }
+  .medium .count { color: #B7791F; }
+  .low .count { color: #276749; }
+  .info .count { color: #2B6CB0; }
+  .section { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .section h2 { font-size: 1.1rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #EDF2F7; }
+  .finding { border-left: 4px solid #E2E8F0; padding: 0.75rem 1rem; margin-bottom: 0.75rem; border-radius: 0 4px 4px 0; }
+  .finding.critical { border-color: #C53030; background: #FFF5F5; }
+  .finding.high { border-color: #C05621; background: #FFFAF0; }
+  .finding.medium { border-color: #B7791F; background: #FFFFF0; }
+  .finding.low { border-color: #276749; background: #F0FFF4; }
+  .finding-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
+  .finding-meta { font-size: 0.8rem; color: #718096; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+  .badge.critical { background: #FED7D7; color: #C53030; }
+  .badge.high { background: #FEEBC8; color: #C05621; }
+  .badge.medium { background: #FEFCBF; color: #B7791F; }
+  .badge.low { background: #C6F6D5; color: #276749; }
+  .badge.info { background: #BEE3F8; color: #2B6CB0; }
+  .remediation { background: #F7FAFC; border-radius: 4px; padding: 0.75rem; margin-top: 0.5rem; font-size: 0.85rem; }
+  .code-block { background: #2D3748; color: #68D391; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.8rem; margin-top: 0.5rem; white-space: pre-wrap; word-break: break-all; }
+  .footer { text-align: center; color: #A0AEC0; font-size: 0.8rem; margin-top: 2rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h1>🛡️ {{ title }}</h1>
+        <div class="meta">
+          Generated: {{ generated_at }} &nbsp;|&nbsp;
+          Scan Date: {{ scan_date }} &nbsp;|&nbsp;
+          Resources Scanned: {{ resources_scanned }}
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:0.8rem; opacity:0.7; margin-bottom:4px;">Risk Score</div>
+        <div class="risk-score">{{ "%.0f"|format(risk_score) }}</div>
+        <div style="font-size:0.75rem; opacity:0.6;">/100</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scorecard">
+    <div class="sev-card critical">
+      <div class="count">{{ critical_count }}</div>
+      <div class="label">Critical</div>
+    </div>
+    <div class="sev-card high">
+      <div class="count">{{ high_count }}</div>
+      <div class="label">High</div>
+    </div>
+    <div class="sev-card medium">
+      <div class="count">{{ medium_count }}</div>
+      <div class="label">Medium</div>
+    </div>
+    <div class="sev-card low">
+      <div class="count">{{ low_count }}</div>
+      <div class="label">Low</div>
+    </div>
+    <div class="sev-card info">
+      <div class="count">{{ info_count }}</div>
+      <div class="label">Info</div>
+    </div>
+  </div>
+
+  {% if executive_summary %}
+  <div class="section">
+    <h2>Executive Summary</h2>
+    <p style="line-height:1.7; color:#4A5568;">{{ executive_summary }}</p>
+  </div>
+  {% endif %}
+
+  {% for severity in ['critical', 'high', 'medium', 'low', 'info'] %}
+  {% set sev_findings = findings | selectattr('severity', 'equalto', severity) | list %}
+  {% if sev_findings %}
+  <div class="section">
+    <h2>{{ severity|title }} Findings ({{ sev_findings|length }})</h2>
+    {% for f in sev_findings[:30] %}
+    <div class="finding {{ f.severity }}">
+      <div class="finding-title">
+        <span class="badge {{ f.severity }}">{{ f.severity }}</span>
+        &nbsp;{{ f.rule_name }}
+      </div>
+      <div class="finding-meta">
+        {{ f.rule_id }} &nbsp;|&nbsp;
+        {{ f.resource_type }}: <strong>{{ f.resource_name or f.resource_id }}</strong>
+        {% if f.region %}&nbsp;|&nbsp;{{ f.region }}{% endif %}
+        {% if f.cvss_score %}&nbsp;|&nbsp;CVSS: {{ "%.1f"|format(f.cvss_score) }}{% endif %}
+      </div>
+      {% if f.cis_benchmark_refs %}
+      <div class="finding-meta" style="margin-top:2px;">CIS: {{ f.cis_benchmark_refs | join(', ') }}</div>
+      {% endif %}
+      {% if f.ai_explanation %}
+      <div class="remediation">
+        <strong>AI Analysis:</strong> {{ f.ai_explanation }}
+      </div>
+      {% elif f.rule_description %}
+      <div class="remediation">{{ f.rule_description }}</div>
+      {% endif %}
+      {% if f.remediation_code %}
+      <div class="code-block">{{ f.remediation_code }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+    {% if sev_findings|length > 30 %}
+    <p style="color:#718096; font-size:0.85rem; margin-top:0.5rem;">
+      ... and {{ sev_findings|length - 30 }} more {{ severity }} findings. Download the PDF for complete list.
+    </p>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% endfor %}
+
+  <div class="footer">
+    <p>Generated by CSPM Platform &nbsp;|&nbsp; {{ generated_at }}</p>
+  </div>
+</div>
+</body>
+</html>

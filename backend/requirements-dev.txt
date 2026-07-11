@@ -1,0 +1,11 @@
+# Dev/Test dependencies only — NOT included in production Docker image
+-r requirements.txt
+
+# AWS Mocking
+moto[all]==5.0.8
+
+# Testing
+pytest==8.2.0
+pytest-asyncio==0.23.7
+pytest-mock==3.14.0
+aiosqlite==0.22.1

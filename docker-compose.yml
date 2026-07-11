@@ -1,0 +1,167 @@
+services:
+  # ── API Server ────────────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cspm_api
+    ports:
+      - "8000:8000"
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://cspm:cspm_pass@postgres:5432/cspm_db
+      SYNC_DATABASE_URL: postgresql+psycopg2://cspm:cspm_pass@postgres:5432/cspm_db
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    volumes:
+      - ./backend:/app
+      - cspm_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  # ── Celery Scan Worker ────────────────────────────────────────
+  worker_scans:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cspm_worker_scans
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://cspm:cspm_pass@postgres:5432/cspm_db
+      SYNC_DATABASE_URL: postgresql+psycopg2://cspm:cspm_pass@postgres:5432/cspm_db
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - postgres
+      - redis
+    command: python -m celery -A app.workers.celery_app worker --loglevel=info -Q scans -c 3
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+  # ── Celery Report Worker ──────────────────────────────────────
+  worker_reports:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cspm_worker_reports
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://cspm:cspm_pass@postgres:5432/cspm_db
+      SYNC_DATABASE_URL: postgresql+psycopg2://cspm:cspm_pass@postgres:5432/cspm_db
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - postgres
+      - redis
+    command: python -m celery -A app.workers.celery_app worker --loglevel=info -Q reports,remediation -c 2
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+  # ── Celery Beat (scheduled scans every 30 min) ───────────────
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cspm_celery_beat
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://cspm:cspm_pass@postgres:5432/cspm_db
+      SYNC_DATABASE_URL: postgresql+psycopg2://cspm:cspm_pass@postgres:5432/cspm_db
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - postgres
+      - redis
+      - worker_scans
+    command: python -m celery -A app.workers.celery_app beat --loglevel=info --scheduler celery.beat.PersistentScheduler --schedule /tmp/celerybeat-schedule
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+  # ── Celery Flower UI ──────────────────────────────────────────
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cspm_flower
+    ports:
+      - "5555:5555"
+    env_file: ./backend/.env
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/1
+    depends_on:
+      - redis
+    command: python -m celery -A app.workers.celery_app flower --port=5555
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+  # ── PostgreSQL ────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: cspm_postgres
+    environment:
+      POSTGRES_USER: cspm
+      POSTGRES_PASSWORD: cspm_pass
+      POSTGRES_DB: cspm_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - cspm_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cspm -d cspm_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Redis ─────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: cspm_redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - cspm_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  # ── pgAdmin ───────────────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: cspm_pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@cspm.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  cspm_postgres_data:
+  cspm_redis_data:
+  cspm_logs:
